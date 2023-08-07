@@ -1,0 +1,30 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "sumitjumwalADF"
+		},
+		"ADLS_CSV_LS_accountKey": {
+			"value": ""
+		},
+		"ADLS_JSON_LS_accountKey": {
+			"value": ""
+		},
+		"SQL_Sample_database_connectionString": {
+			"value": ""
+		},
+		"ADLS_CSV_LS_properties_typeProperties_url": {
+			"value": "https://athiranambiar1991.dfs.core.windows.net/"
+		},
+		"ADLS_JSON_LS_properties_typeProperties_url": {
+			"value": "https://athiranambiar1991.dfs.core.windows.net/"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}
