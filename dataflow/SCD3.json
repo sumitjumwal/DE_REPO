@@ -1,0 +1,222 @@
+{
+	"name": "SCD3",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "SQL_Sample_database",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DestinationCustomer"
+				},
+				{
+					"linkedService": {
+						"referenceName": "SQL_Sample_database",
+						"type": "LinkedServiceReference"
+					},
+					"name": "SourceCustomer"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "SQL_Sample_database",
+						"type": "LinkedServiceReference"
+					},
+					"name": "Updatesink"
+				},
+				{
+					"linkedService": {
+						"referenceName": "SQL_Sample_database",
+						"type": "LinkedServiceReference"
+					},
+					"name": "InserSink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "JoinmatchingCID"
+				},
+				{
+					"name": "MatchingRow"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "MakeRowsalter"
+				},
+				{
+					"name": "NotexistentRow"
+				},
+				{
+					"name": "select2"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CustomerID as integer,",
+				"          NameStyle as boolean,",
+				"          Title as string,",
+				"          FirstName as string,",
+				"          MiddleName as string,",
+				"          LastName as string,",
+				"          Suffix as string,",
+				"          CompanyName as string,",
+				"          SalesPerson as string,",
+				"          EmailAddress as string,",
+				"          Phone as string,",
+				"          PasswordHash as string,",
+				"          PasswordSalt as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as timestamp,",
+				"          LastName_prev as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'SalesLT',",
+				"     tableName: 'SCD3_destination',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> DestinationCustomer",
+				"source(output(",
+				"          CustomerID as integer,",
+				"          NameStyle as boolean,",
+				"          Title as string,",
+				"          FirstName as string,",
+				"          MiddleName as string,",
+				"          LastName as string,",
+				"          Suffix as string,",
+				"          CompanyName as string,",
+				"          SalesPerson as string,",
+				"          EmailAddress as string,",
+				"          Phone as string,",
+				"          PasswordHash as string,",
+				"          PasswordSalt as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'SalesLT',",
+				"     tableName: 'SCD3_Source',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> SourceCustomer",
+				"SourceCustomer, DestinationCustomer join(SourceCustomer@CustomerID == DestinationCustomer@CustomerID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> JoinmatchingCID",
+				"JoinmatchingCID filter(!isNull(DestinationCustomer@CustomerID)) ~> MatchingRow",
+				"MatchingRow select(mapColumn(",
+				"          CustomerID = SourceCustomer@CustomerID,",
+				"          NameStyle = SourceCustomer@NameStyle,",
+				"          Title = SourceCustomer@Title,",
+				"          FirstName = SourceCustomer@FirstName,",
+				"          MiddleName = SourceCustomer@MiddleName,",
+				"          SourceLastName = SourceCustomer@LastName,",
+				"          Suffix = SourceCustomer@Suffix,",
+				"          CompanyName = SourceCustomer@CompanyName,",
+				"          SalesPerson = SourceCustomer@SalesPerson,",
+				"          EmailAddress = SourceCustomer@EmailAddress,",
+				"          Phone = SourceCustomer@Phone,",
+				"          PasswordHash = SourceCustomer@PasswordHash,",
+				"          PasswordSalt = SourceCustomer@PasswordSalt,",
+				"          rowguid = SourceCustomer@rowguid,",
+				"          ModifiedDate = SourceCustomer@ModifiedDate,",
+				"          DestinationLastname = DestinationCustomer@LastName",
+				"     ),",
+				"     skipDuplicateMapInputs: false,",
+				"     skipDuplicateMapOutputs: false) ~> select1",
+				"select1 alterRow(updateIf(DestinationLastname != SourceLastName)) ~> MakeRowsalter",
+				"JoinmatchingCID filter(isNull(DestinationCustomer@CustomerID)) ~> NotexistentRow",
+				"NotexistentRow select(mapColumn(",
+				"          CustomerID = SourceCustomer@CustomerID,",
+				"          NameStyle = SourceCustomer@NameStyle,",
+				"          Title = SourceCustomer@Title,",
+				"          FirstName = SourceCustomer@FirstName,",
+				"          MiddleName = SourceCustomer@MiddleName,",
+				"          LastName = SourceCustomer@LastName,",
+				"          Suffix = SourceCustomer@Suffix,",
+				"          CompanyName = SourceCustomer@CompanyName,",
+				"          SalesPerson = SourceCustomer@SalesPerson,",
+				"          EmailAddress = SourceCustomer@EmailAddress,",
+				"          Phone = SourceCustomer@Phone,",
+				"          PasswordHash = SourceCustomer@PasswordHash,",
+				"          PasswordSalt = SourceCustomer@PasswordSalt,",
+				"          rowguid = SourceCustomer@rowguid,",
+				"          ModifiedDate = SourceCustomer@ModifiedDate",
+				"     ),",
+				"     skipDuplicateMapInputs: false,",
+				"     skipDuplicateMapOutputs: false) ~> select2",
+				"MakeRowsalter sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'SalesLT',",
+				"     tableName: 'SCD3_destination',",
+				"     insertable: false,",
+				"     updateable: true,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     keys:['CustomerID'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          CustomerID,",
+				"          NameStyle,",
+				"          Title,",
+				"          FirstName,",
+				"          MiddleName,",
+				"          LastName = SourceLastName,",
+				"          Suffix,",
+				"          CompanyName,",
+				"          SalesPerson,",
+				"          EmailAddress,",
+				"          Phone,",
+				"          PasswordHash,",
+				"          PasswordSalt,",
+				"          rowguid,",
+				"          ModifiedDate,",
+				"          LastName_prev = DestinationLastname",
+				"     )) ~> Updatesink",
+				"select2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'SalesLT',",
+				"     tableName: 'SCD3_destination',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 2,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          CustomerID,",
+				"          NameStyle,",
+				"          Title,",
+				"          FirstName,",
+				"          MiddleName,",
+				"          LastName,",
+				"          Suffix,",
+				"          CompanyName,",
+				"          SalesPerson,",
+				"          EmailAddress,",
+				"          Phone,",
+				"          PasswordHash,",
+				"          PasswordSalt,",
+				"          rowguid,",
+				"          ModifiedDate",
+				"     )) ~> InserSink"
+			]
+		}
+	}
+}
