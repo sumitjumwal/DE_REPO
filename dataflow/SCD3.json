@@ -25,7 +25,14 @@
 						"referenceName": "SQL_Sample_database",
 						"type": "LinkedServiceReference"
 					},
-					"name": "SinktoDestination"
+					"name": "Updatesink"
+				},
+				{
+					"linkedService": {
+						"referenceName": "SQL_Sample_database",
+						"type": "LinkedServiceReference"
+					},
+					"name": "InserSink"
 				}
 			],
 			"transformations": [
@@ -33,10 +40,19 @@
 					"name": "JoinmatchingCID"
 				},
 				{
-					"name": "SelectRows"
+					"name": "MatchingRow"
 				},
 				{
-					"name": "setAlter"
+					"name": "select1"
+				},
+				{
+					"name": "MakeRowsalter"
+				},
+				{
+					"name": "NotexistentRow"
+				},
+				{
+					"name": "select2"
 				}
 			],
 			"scriptLines": [
@@ -94,7 +110,30 @@
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> JoinmatchingCID",
-				"JoinmatchingCID select(mapColumn(",
+				"JoinmatchingCID filter(!isNull(DestinationCustomer@CustomerID)) ~> MatchingRow",
+				"MatchingRow select(mapColumn(",
+				"          CustomerID = SourceCustomer@CustomerID,",
+				"          NameStyle = SourceCustomer@NameStyle,",
+				"          Title = SourceCustomer@Title,",
+				"          FirstName = SourceCustomer@FirstName,",
+				"          MiddleName = SourceCustomer@MiddleName,",
+				"          SourceLastName = SourceCustomer@LastName,",
+				"          Suffix = SourceCustomer@Suffix,",
+				"          CompanyName = SourceCustomer@CompanyName,",
+				"          SalesPerson = SourceCustomer@SalesPerson,",
+				"          EmailAddress = SourceCustomer@EmailAddress,",
+				"          Phone = SourceCustomer@Phone,",
+				"          PasswordHash = SourceCustomer@PasswordHash,",
+				"          PasswordSalt = SourceCustomer@PasswordSalt,",
+				"          rowguid = SourceCustomer@rowguid,",
+				"          ModifiedDate = SourceCustomer@ModifiedDate,",
+				"          DestinationLastname = DestinationCustomer@LastName",
+				"     ),",
+				"     skipDuplicateMapInputs: false,",
+				"     skipDuplicateMapOutputs: false) ~> select1",
+				"select1 alterRow(updateIf(1==1)) ~> MakeRowsalter",
+				"JoinmatchingCID filter(isNull(DestinationCustomer@CustomerID)) ~> NotexistentRow",
+				"NotexistentRow select(mapColumn(",
 				"          CustomerID = SourceCustomer@CustomerID,",
 				"          NameStyle = SourceCustomer@NameStyle,",
 				"          Title = SourceCustomer@Title,",
@@ -109,13 +148,43 @@
 				"          PasswordHash = SourceCustomer@PasswordHash,",
 				"          PasswordSalt = SourceCustomer@PasswordSalt,",
 				"          rowguid = SourceCustomer@rowguid,",
-				"          ModifiedDate = SourceCustomer@ModifiedDate,",
-				"          DestinationlastName = DestinationCustomer@LastName",
+				"          ModifiedDate = SourceCustomer@ModifiedDate",
 				"     ),",
 				"     skipDuplicateMapInputs: false,",
-				"     skipDuplicateMapOutputs: false) ~> SelectRows",
-				"SelectRows alterRow(upsertIf(1==1)) ~> setAlter",
-				"setAlter sink(allowSchemaDrift: true,",
+				"     skipDuplicateMapOutputs: false) ~> select2",
+				"MakeRowsalter sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'SalesLT',",
+				"     tableName: 'SCD3_destination',",
+				"     insertable: false,",
+				"     updateable: true,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     keys:['CustomerID'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          CustomerID,",
+				"          NameStyle,",
+				"          Title,",
+				"          FirstName,",
+				"          MiddleName,",
+				"          LastName = SourceLastName,",
+				"          Suffix,",
+				"          CompanyName,",
+				"          SalesPerson,",
+				"          EmailAddress,",
+				"          Phone,",
+				"          PasswordHash,",
+				"          PasswordSalt,",
+				"          rowguid,",
+				"          ModifiedDate,",
+				"          LastName_prev = DestinationLastname",
+				"     )) ~> Updatesink",
+				"select2 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'table',",
 				"     store: 'sqlserver',",
@@ -143,9 +212,8 @@
 				"          PasswordHash,",
 				"          PasswordSalt,",
 				"          rowguid,",
-				"          ModifiedDate,",
-				"          LastName_prev = DestinationlastName",
-				"     )) ~> SinktoDestination"
+				"          ModifiedDate",
+				"     )) ~> InserSink"
 			]
 		}
 	}
