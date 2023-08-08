@@ -1060,6 +1060,90 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/FindDuplicate')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "SQL_Sample_database",
+								"type": "LinkedServiceReference"
+							},
+							"name": "Source"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "SQL_Sample_database",
+								"type": "LinkedServiceReference"
+							},
+							"name": "DeleteInSink"
+						}
+					],
+					"transformations": [
+						{
+							"name": "window1"
+						},
+						{
+							"name": "DeletAlter"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          CustomerID as integer,",
+						"          NameStyle as boolean,",
+						"          Title as string,",
+						"          FirstName as string,",
+						"          MiddleName as string,",
+						"          LastName as string,",
+						"          Suffix as string,",
+						"          CompanyName as string,",
+						"          SalesPerson as string,",
+						"          EmailAddress as string,",
+						"          Phone as string,",
+						"          PasswordHash as string,",
+						"          PasswordSalt as string,",
+						"          rowguid as string,",
+						"          ModifiedDate as timestamp,",
+						"          LastName_prev as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'SalesLT',",
+						"     tableName: 'duplicate',",
+						"     isolationLevel: 'READ_UNCOMMITTED') ~> Source",
+						"Source window(over(LastName),",
+						"     asc(CustomerID, true),",
+						"     RowNumber = rowNumber()) ~> window1",
+						"window1 alterRow(deleteIf(RowNumber>1)) ~> DeletAlter",
+						"DeletAlter sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'sqlserver',",
+						"     schemaName: 'SalesLT',",
+						"     tableName: 'duplicate',",
+						"     insertable: false,",
+						"     updateable: false,",
+						"     deletable: true,",
+						"     upsertable: false,",
+						"     keys:['CustomerID'],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> DeleteInSink"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SQL_Sample_database')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/SCD2_DF')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -1581,158 +1665,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/dataflows/Assignment8_Q3_advance')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Assignment7_Q3')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Get_meta",
-						"type": "GetMetadata",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "CSV_DS",
-								"type": "DatasetReference",
-								"parameters": {
-									"FilePath": "CSV"
-								}
-							},
-							"fieldList": [
-								"childItems"
-							],
-							"storeSettings": {
-								"type": "AzureBlobFSReadSettings",
-								"recursive": true,
-								"enablePartitionDiscovery": false
-							},
-							"formatSettings": {
-								"type": "DelimitedTextReadSettings"
-							}
-						}
-					},
-					{
-						"name": "For_activity",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "Get_meta",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('Get_meta').output.childItems",
-								"type": "Expression"
-							},
-							"activities": [
-								{
-									"name": "coheck_filename",
-									"type": "IfCondition",
-									"dependsOn": [],
-									"userProperties": [],
-									"typeProperties": {
-										"expression": {
-											"value": "@and(equals(item().type,'File'),equals(item().name,'ADF-copy.csv'))\n",
-											"type": "Expression"
-										},
-										"ifTrueActivities": [
-											{
-												"name": "Copy data1_copy1",
-												"type": "Copy",
-												"dependsOn": [],
-												"policy": {
-													"timeout": "0.12:00:00",
-													"retry": 0,
-													"retryIntervalInSeconds": 30,
-													"secureOutput": false,
-													"secureInput": false
-												},
-												"userProperties": [],
-												"typeProperties": {
-													"source": {
-														"type": "DelimitedTextSource",
-														"storeSettings": {
-															"type": "AzureBlobFSReadSettings",
-															"recursive": true,
-															"enablePartitionDiscovery": false
-														},
-														"formatSettings": {
-															"type": "DelimitedTextReadSettings"
-														}
-													},
-													"sink": {
-														"type": "AzureSqlSink",
-														"writeBehavior": "insert",
-														"sqlWriterUseTableLock": false,
-														"tableOption": "autoCreate",
-														"disableMetricsCollection": false
-													},
-													"enableStaging": false,
-													"translator": {
-														"type": "TabularTranslator",
-														"typeConversion": true,
-														"typeConversionSettings": {
-															"allowDataTruncation": true,
-															"treatBooleanAsNumber": false
-														}
-													}
-												},
-												"inputs": [
-													{
-														"referenceName": "CSV_FILE_DS",
-														"type": "DatasetReference",
-														"parameters": {
-															"Filename": {
-																"value": "ADF-copy.csv",
-																"type": "Expression"
-															}
-														}
-													}
-												],
-												"outputs": [
-													{
-														"referenceName": "SQL_Generic_DS",
-														"type": "DatasetReference",
-														"parameters": {
-															"TableName": "Test",
-															"SchemaName": "SalesLT"
-														}
-													}
-												]
-											}
-										]
-									}
-								}
-							]
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {},
-					"cancelAfter": {}
-				},
-				"annotations": [],
-				"lastPublishTime": "2023-07-15T01:05:50Z"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/CSV_DS')]",
-				"[concat(variables('factoryId'), '/datasets/CSV_FILE_DS')]",
-				"[concat(variables('factoryId'), '/datasets/SQL_Generic_DS')]"
 			]
 		}
 	]
