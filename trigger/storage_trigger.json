@@ -1,0 +1,18 @@
+{
+	"name": "storage_trigger",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/landing/blobs/CSV/Customer",
+			"blobPathEndsWith": ".txt",
+			"ignoreEmptyBlobs": true,
+			"scope": "/subscriptions/b48c28de-b7cd-4176-a809-6e3f48e95165/resourceGroups/DataEngineering/providers/Microsoft.Storage/storageAccounts/athiranambiar1991",
+			"events": [
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}
