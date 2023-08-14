@@ -26,6 +26,10 @@
 		"ADLS_JSON_LS_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://athiranambiar1991.dfs.core.windows.net/"
+		},
+		"RESTApi_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://restcountries.com/v3.1/all"
 		}
 	},
 	"variables": {
@@ -62,6 +66,21 @@
 						"type": "SecureString",
 						"value": "[parameters('ADLS_JSON_LS_accountKey')]"
 					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RESTApi')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('RESTApi_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
 				}
 			},
 			"dependsOn": []
@@ -284,6 +303,24 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ADLS_JSON_LS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/REST_DS')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "RESTApi",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "RestResource",
+				"typeProperties": {},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/RESTApi')]"
 			]
 		},
 		{
@@ -1144,7 +1181,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/SCD2_DF')]",
+			"name": "[concat(parameters('factoryName'), '/FindDuplicate_to_CSV')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -1156,296 +1193,24 @@
 								"referenceName": "SQL_Sample_database",
 								"type": "LinkedServiceReference"
 							},
-							"name": "Destination"
-						},
-						{
-							"linkedService": {
-								"referenceName": "SQL_Sample_database",
-								"type": "LinkedServiceReference"
-							},
-							"name": "source"
+							"name": "Source"
 						}
 					],
 					"sinks": [
 						{
 							"linkedService": {
-								"referenceName": "SQL_Sample_database",
+								"referenceName": "ADLS_CSV_LS",
 								"type": "LinkedServiceReference"
 							},
-							"name": "InsertEvrything"
-						},
-						{
-							"linkedService": {
-								"referenceName": "SQL_Sample_database",
-								"type": "LinkedServiceReference"
-							},
-							"name": "UpdateFlagwhenexist"
+							"name": "DeleteInSink"
 						}
 					],
 					"transformations": [
 						{
-							"name": "join1"
+							"name": "window1"
 						},
 						{
-							"name": "select1"
-						},
-						{
-							"name": "SourceFlag"
-						},
-						{
-							"name": "filter2"
-						},
-						{
-							"name": "alterRow1"
-						},
-						{
-							"name": "derivedColumn1"
-						}
-					],
-					"scriptLines": [
-						"source(output(",
-						"          CustomerID as integer,",
-						"          NameStyle as boolean,",
-						"          Title as string,",
-						"          FirstName as string,",
-						"          MiddleName as string,",
-						"          LastName as string,",
-						"          Suffix as string,",
-						"          CompanyName as string,",
-						"          SalesPerson as string,",
-						"          EmailAddress as string,",
-						"          Phone as string,",
-						"          PasswordHash as string,",
-						"          PasswordSalt as string,",
-						"          rowguid as string,",
-						"          ModifiedDate as timestamp,",
-						"          Flag as long",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     format: 'table',",
-						"     store: 'sqlserver',",
-						"     schemaName: 'SalesLT',",
-						"     tableName: 'destination',",
-						"     isolationLevel: 'READ_UNCOMMITTED') ~> Destination",
-						"source(output(",
-						"          CustomerID as integer,",
-						"          NameStyle as boolean,",
-						"          Title as string,",
-						"          FirstName as string,",
-						"          MiddleName as string,",
-						"          LastName as string,",
-						"          Suffix as string,",
-						"          CompanyName as string,",
-						"          SalesPerson as string,",
-						"          EmailAddress as string,",
-						"          Phone as string,",
-						"          PasswordHash as string,",
-						"          PasswordSalt as string,",
-						"          rowguid as string,",
-						"          ModifiedDate as timestamp",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     format: 'table',",
-						"     store: 'sqlserver',",
-						"     schemaName: 'SalesLT',",
-						"     tableName: 'Source',",
-						"     isolationLevel: 'READ_UNCOMMITTED') ~> source",
-						"source, Destination join(source@CustomerID == Destination@CustomerID,",
-						"     joinType:'left',",
-						"     matchType:'exact',",
-						"     ignoreSpaces: false,",
-						"     broadcast: 'auto')~> join1",
-						"join1 select(mapColumn(",
-						"          CustomerID = source@CustomerID,",
-						"          NameStyle = source@NameStyle,",
-						"          Title = source@Title,",
-						"          FirstName = source@FirstName,",
-						"          MiddleName = source@MiddleName,",
-						"          LastName = source@LastName,",
-						"          Suffix = source@Suffix,",
-						"          CompanyName = source@CompanyName,",
-						"          SalesPerson = source@SalesPerson,",
-						"          EmailAddress = source@EmailAddress,",
-						"          Phone = source@Phone,",
-						"          PasswordHash = source@PasswordHash,",
-						"          PasswordSalt = source@PasswordSalt,",
-						"          rowguid = source@rowguid,",
-						"          ModifiedDate = source@ModifiedDate,",
-						"          destFlag = Flag",
-						"     ),",
-						"     skipDuplicateMapInputs: false,",
-						"     skipDuplicateMapOutputs: false) ~> select1",
-						"select1 derive(SourceColumn = 1) ~> SourceFlag",
-						"select1 filter(destFlag == 1) ~> filter2",
-						"filter2 alterRow(updateIf(1==1)) ~> alterRow1",
-						"alterRow1 derive(Flag = 0) ~> derivedColumn1",
-						"SourceFlag sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     input(",
-						"          CustomerID as integer,",
-						"          NameStyle as boolean,",
-						"          Title as string,",
-						"          FirstName as string,",
-						"          MiddleName as string,",
-						"          LastName as string,",
-						"          Suffix as string,",
-						"          CompanyName as string,",
-						"          SalesPerson as string,",
-						"          EmailAddress as string,",
-						"          Phone as string,",
-						"          PasswordHash as string,",
-						"          PasswordSalt as string,",
-						"          rowguid as string,",
-						"          ModifiedDate as timestamp,",
-						"          Flag as string",
-						"     ),",
-						"     format: 'table',",
-						"     store: 'sqlserver',",
-						"     schemaName: 'SalesLT',",
-						"     tableName: 'destination',",
-						"     insertable: true,",
-						"     updateable: false,",
-						"     deletable: false,",
-						"     upsertable: false,",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     saveOrder: 2,",
-						"     errorHandlingOption: 'stopOnFirstError',",
-						"     mapColumn(",
-						"          CustomerID,",
-						"          NameStyle,",
-						"          Title,",
-						"          FirstName,",
-						"          MiddleName,",
-						"          LastName,",
-						"          Suffix,",
-						"          CompanyName,",
-						"          SalesPerson,",
-						"          EmailAddress,",
-						"          Phone,",
-						"          PasswordHash,",
-						"          PasswordSalt,",
-						"          rowguid,",
-						"          ModifiedDate,",
-						"          Flag = SourceColumn",
-						"     )) ~> InsertEvrything",
-						"derivedColumn1 sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     input(",
-						"          CustomerID as integer,",
-						"          NameStyle as boolean,",
-						"          Title as string,",
-						"          FirstName as string,",
-						"          MiddleName as string,",
-						"          LastName as string,",
-						"          Suffix as string,",
-						"          CompanyName as string,",
-						"          SalesPerson as string,",
-						"          EmailAddress as string,",
-						"          Phone as string,",
-						"          PasswordHash as string,",
-						"          PasswordSalt as string,",
-						"          rowguid as string,",
-						"          ModifiedDate as timestamp,",
-						"          Flag as string",
-						"     ),",
-						"     format: 'table',",
-						"     store: 'sqlserver',",
-						"     schemaName: 'SalesLT',",
-						"     tableName: 'destination',",
-						"     insertable: false,",
-						"     updateable: true,",
-						"     deletable: false,",
-						"     upsertable: false,",
-						"     keys:['CustomerID'],",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     saveOrder: 1,",
-						"     errorHandlingOption: 'stopOnFirstError',",
-						"     mapColumn(",
-						"          CustomerID,",
-						"          NameStyle,",
-						"          Title,",
-						"          FirstName,",
-						"          MiddleName,",
-						"          LastName,",
-						"          Suffix,",
-						"          CompanyName,",
-						"          SalesPerson,",
-						"          EmailAddress,",
-						"          Phone,",
-						"          PasswordHash,",
-						"          PasswordSalt,",
-						"          rowguid,",
-						"          ModifiedDate,",
-						"          Flag",
-						"     )) ~> UpdateFlagwhenexist"
-					]
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/SQL_Sample_database')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/SCD3')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"linkedService": {
-								"referenceName": "SQL_Sample_database",
-								"type": "LinkedServiceReference"
-							},
-							"name": "DestinationCustomer"
-						},
-						{
-							"linkedService": {
-								"referenceName": "SQL_Sample_database",
-								"type": "LinkedServiceReference"
-							},
-							"name": "SourceCustomer"
-						}
-					],
-					"sinks": [
-						{
-							"linkedService": {
-								"referenceName": "SQL_Sample_database",
-								"type": "LinkedServiceReference"
-							},
-							"name": "Updatesink"
-						},
-						{
-							"linkedService": {
-								"referenceName": "SQL_Sample_database",
-								"type": "LinkedServiceReference"
-							},
-							"name": "InserSink"
-						}
-					],
-					"transformations": [
-						{
-							"name": "JoinmatchingCID"
-						},
-						{
-							"name": "MatchingRow"
-						},
-						{
-							"name": "select1"
-						},
-						{
-							"name": "MakeRowsalter"
-						},
-						{
-							"name": "NotexistentRow"
-						},
-						{
-							"name": "select2"
+							"name": "DeletAlter"
 						}
 					],
 					"scriptLines": [
@@ -1472,199 +1237,34 @@
 						"     format: 'table',",
 						"     store: 'sqlserver',",
 						"     schemaName: 'SalesLT',",
-						"     tableName: 'SCD3_destination',",
-						"     isolationLevel: 'READ_UNCOMMITTED') ~> DestinationCustomer",
-						"source(output(",
-						"          CustomerID as integer,",
-						"          NameStyle as boolean,",
-						"          Title as string,",
-						"          FirstName as string,",
-						"          MiddleName as string,",
-						"          LastName as string,",
-						"          Suffix as string,",
-						"          CompanyName as string,",
-						"          SalesPerson as string,",
-						"          EmailAddress as string,",
-						"          Phone as string,",
-						"          PasswordHash as string,",
-						"          PasswordSalt as string,",
-						"          rowguid as string,",
-						"          ModifiedDate as timestamp",
-						"     ),",
-						"     allowSchemaDrift: true,",
+						"     tableName: 'duplicate',",
+						"     isolationLevel: 'READ_UNCOMMITTED') ~> Source",
+						"Source window(over(LastName),",
+						"     asc(CustomerID, true),",
+						"     RowNumber = rowNumber()) ~> window1",
+						"window1 alterRow(deleteIf(RowNumber>1)) ~> DeletAlter",
+						"DeletAlter sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
-						"     format: 'table',",
-						"     store: 'sqlserver',",
-						"     schemaName: 'SalesLT',",
-						"     tableName: 'SCD3_Source',",
-						"     isolationLevel: 'READ_UNCOMMITTED') ~> SourceCustomer",
-						"SourceCustomer, DestinationCustomer join(SourceCustomer@CustomerID == DestinationCustomer@CustomerID,",
-						"     joinType:'left',",
-						"     matchType:'exact',",
-						"     ignoreSpaces: false,",
-						"     broadcast: 'auto')~> JoinmatchingCID",
-						"JoinmatchingCID filter(!isNull(DestinationCustomer@CustomerID)) ~> MatchingRow",
-						"MatchingRow select(mapColumn(",
-						"          CustomerID = SourceCustomer@CustomerID,",
-						"          NameStyle = SourceCustomer@NameStyle,",
-						"          Title = SourceCustomer@Title,",
-						"          FirstName = SourceCustomer@FirstName,",
-						"          MiddleName = SourceCustomer@MiddleName,",
-						"          SourceLastName = SourceCustomer@LastName,",
-						"          Suffix = SourceCustomer@Suffix,",
-						"          CompanyName = SourceCustomer@CompanyName,",
-						"          SalesPerson = SourceCustomer@SalesPerson,",
-						"          EmailAddress = SourceCustomer@EmailAddress,",
-						"          Phone = SourceCustomer@Phone,",
-						"          PasswordHash = SourceCustomer@PasswordHash,",
-						"          PasswordSalt = SourceCustomer@PasswordSalt,",
-						"          rowguid = SourceCustomer@rowguid,",
-						"          ModifiedDate = SourceCustomer@ModifiedDate,",
-						"          DestinationLastname = DestinationCustomer@LastName",
-						"     ),",
-						"     skipDuplicateMapInputs: false,",
-						"     skipDuplicateMapOutputs: false) ~> select1",
-						"select1 alterRow(updateIf(DestinationLastname!=SourceLastName)) ~> MakeRowsalter",
-						"JoinmatchingCID filter(isNull(DestinationCustomer@CustomerID)) ~> NotexistentRow",
-						"NotexistentRow select(mapColumn(",
-						"          CustomerID = SourceCustomer@CustomerID,",
-						"          NameStyle = SourceCustomer@NameStyle,",
-						"          Title = SourceCustomer@Title,",
-						"          FirstName = SourceCustomer@FirstName,",
-						"          MiddleName = SourceCustomer@MiddleName,",
-						"          LastName = SourceCustomer@LastName,",
-						"          Suffix = SourceCustomer@Suffix,",
-						"          CompanyName = SourceCustomer@CompanyName,",
-						"          SalesPerson = SourceCustomer@SalesPerson,",
-						"          EmailAddress = SourceCustomer@EmailAddress,",
-						"          Phone = SourceCustomer@Phone,",
-						"          PasswordHash = SourceCustomer@PasswordHash,",
-						"          PasswordSalt = SourceCustomer@PasswordSalt,",
-						"          rowguid = SourceCustomer@rowguid,",
-						"          ModifiedDate = SourceCustomer@ModifiedDate",
-						"     ),",
-						"     skipDuplicateMapInputs: false,",
-						"     skipDuplicateMapOutputs: false) ~> select2",
-						"MakeRowsalter sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     format: 'table',",
-						"     store: 'sqlserver',",
-						"     schemaName: 'SalesLT',",
-						"     tableName: 'SCD3_destination',",
-						"     insertable: false,",
-						"     updateable: true,",
-						"     deletable: false,",
-						"     upsertable: false,",
-						"     keys:['CustomerID'],",
+						"     format: 'delimited',",
+						"     fileSystem: 'landing',",
+						"     folderPath: 'CSV',",
+						"     columnDelimiter: ',',",
+						"     escapeChar: '\\\\',",
+						"     quoteChar: '\\\"',",
+						"     columnNamesAsHeader: true,",
+						"     partitionFileNames:['DeletedDuplicateCustomer'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     saveOrder: 1,",
-						"     errorHandlingOption: 'stopOnFirstError',",
-						"     mapColumn(",
-						"          CustomerID,",
-						"          NameStyle,",
-						"          Title,",
-						"          FirstName,",
-						"          MiddleName,",
-						"          LastName = SourceLastName,",
-						"          Suffix,",
-						"          CompanyName,",
-						"          SalesPerson,",
-						"          EmailAddress,",
-						"          Phone,",
-						"          PasswordHash,",
-						"          PasswordSalt,",
-						"          rowguid,",
-						"          ModifiedDate,",
-						"          LastName_prev = DestinationLastname",
-						"     )) ~> Updatesink",
-						"select2 sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     format: 'table',",
-						"     store: 'sqlserver',",
-						"     schemaName: 'SalesLT',",
-						"     tableName: 'SCD3_destination',",
-						"     insertable: true,",
-						"     updateable: false,",
-						"     deletable: false,",
-						"     upsertable: false,",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     saveOrder: 2,",
-						"     errorHandlingOption: 'stopOnFirstError',",
-						"     mapColumn(",
-						"          CustomerID,",
-						"          NameStyle,",
-						"          Title,",
-						"          FirstName,",
-						"          MiddleName,",
-						"          LastName,",
-						"          Suffix,",
-						"          CompanyName,",
-						"          SalesPerson,",
-						"          EmailAddress,",
-						"          Phone,",
-						"          PasswordHash,",
-						"          PasswordSalt,",
-						"          rowguid,",
-						"          ModifiedDate",
-						"     )) ~> InserSink"
+						"     partitionBy('hash', 1)) ~> DeleteInSink"
 					]
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/SQL_Sample_database')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Assignement8_Q3_advance')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Data flow1",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "Assignment8_Q3_advance",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"DatabaseFromSQL": {},
-									"JSON": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "None",
-							"cacheSinks": {
-								"firstRowOnly": true
-							}
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {},
-					"cancelAfter": {}
-				},
-				"annotations": [],
-				"lastPublishTime": "2023-07-27T03:45:09Z"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/Assignment8_Q3_advance')]"
+				"[concat(variables('factoryId'), '/linkedServices/SQL_Sample_database')]",
+				"[concat(variables('factoryId'), '/linkedServices/ADLS_CSV_LS')]"
 			]
 		}
 	]

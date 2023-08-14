@@ -27,6 +27,10 @@
 			"type": "string",
 			"defaultValue": "https://athiranambiar1991.dfs.core.windows.net/"
 		},
+		"RESTApi_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://restcountries.com/v3.1/all"
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -68,6 +72,9 @@
 					},
 					"ADLS_JSON_LS_properties_typeProperties_url": {
 						"value": "[parameters('ADLS_JSON_LS_properties_typeProperties_url')]"
+					},
+					"RESTApi_properties_typeProperties_url": {
+						"value": "[parameters('RESTApi_properties_typeProperties_url')]"
 					}
 				}
 			},
