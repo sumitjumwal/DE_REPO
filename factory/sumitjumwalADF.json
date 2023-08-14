@@ -1,0 +1,9 @@
+{
+	"name": "sumitjumwalADF",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "f6bf143e-a9fb-4dec-b8b4-dc53562fb00a",
+		"tenantId": "69ffb37b-7c57-4b78-a89e-ec5d7b03a9b5"
+	}
+}
