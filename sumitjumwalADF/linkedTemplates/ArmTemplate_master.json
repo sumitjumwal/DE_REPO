@@ -31,6 +31,10 @@
 			"type": "string",
 			"defaultValue": "https://restcountries.com/v3.1/all"
 		},
+		"storage_trigger_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/b48c28de-b7cd-4176-a809-6e3f48e95165/resourceGroups/DataEngineering/providers/Microsoft.Storage/storageAccounts/athiranambiar1991"
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -75,6 +79,9 @@
 					},
 					"RESTApi_properties_typeProperties_url": {
 						"value": "[parameters('RESTApi_properties_typeProperties_url')]"
+					},
+					"storage_trigger_properties_typeProperties_scope": {
+						"value": "[parameters('storage_trigger_properties_typeProperties_scope')]"
 					}
 				}
 			},
