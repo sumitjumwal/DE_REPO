@@ -53,6 +53,7 @@
 			},
 			{
 				"name": "Send Mail",
+				"description": "{}",
 				"type": "WebActivity",
 				"dependsOn": [
 					{
