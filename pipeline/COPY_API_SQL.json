@@ -58,7 +58,7 @@
 					{
 						"activity": "Copy_API",
 						"dependencyConditions": [
-							"Succeeded"
+							"Completed"
 						]
 					}
 				],
