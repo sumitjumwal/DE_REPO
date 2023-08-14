@@ -1,0 +1,81 @@
+{
+	"name": "COPY_API_SQL",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy_API",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"preCopyScript": "TRUNCATE TABLE SalesLT.API",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "REST_DS",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SQL_Generic_DS",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "API",
+							"SchemaName": "SalesLT"
+						}
+					}
+				]
+			},
+			{
+				"name": "Send Mail",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Copy_API",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": "https://prod-54.eastus.logic.azure.com:443/workflows/76e0463aa16e4c7784cb9e171a96a28b/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=34NReotWMEIIUn7rcBooiKgvP59osQn6o9eq0w6rWCE",
+					"method": "POST"
+				}
+			}
+		],
+		"annotations": []
+	}
+}
