@@ -31,6 +31,10 @@
 			"type": "string",
 			"defaultValue": "https://restcountries.com/v3.1/name"
 		},
+		"Assignemnt10_storage_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/b48c28de-b7cd-4176-a809-6e3f48e95165/resourceGroups/DataEngineering/providers/Microsoft.Storage/storageAccounts/athiranambiar1991"
+		},
 		"storage_trigger_properties_typeProperties_scope": {
 			"type": "string",
 			"defaultValue": "/subscriptions/b48c28de-b7cd-4176-a809-6e3f48e95165/resourceGroups/DataEngineering/providers/Microsoft.Storage/storageAccounts/athiranambiar1991"
@@ -125,6 +129,29 @@
 			},
 			"dependsOn": [
 				"[resourceId('Microsoft.Resources/deployments', 'sumitjumwalADF_ArmTemplate_1')]"
+			]
+		},
+		{
+			"name": "sumitjumwalADF_ArmTemplate_3",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_3.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"Assignemnt10_storage_properties_typeProperties_scope": {
+						"value": "[parameters('Assignemnt10_storage_properties_typeProperties_scope')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'sumitjumwalADF_ArmTemplate_2')]"
 			]
 		}
 	]
