@@ -170,6 +170,68 @@
 								}
 							]
 						}
+					},
+					{
+						"name": "Failed_Notification",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "ForEach_country",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": "https://prod-54.eastus.logic.azure.com:443/workflows/76e0463aa16e4c7784cb9e171a96a28b/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=34NReotWMEIIUn7rcBooiKgvP59osQn6o9eq0w6rWCE",
+							"method": "POST",
+							"headers": {},
+							"body": {
+								"Sendto": "sumitjumwal1996@gmail.com",
+								"FailedMessage": "This Pipeline is failled : Assignement10_Q2",
+								"Status": "Failed",
+								"Subject": "Pipeline failed Assignment10_Q2"
+							}
+						}
+					},
+					{
+						"name": "Successs_Notification",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "ForEach_country",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": "https://prod-54.eastus.logic.azure.com:443/workflows/76e0463aa16e4c7784cb9e171a96a28b/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=34NReotWMEIIUn7rcBooiKgvP59osQn6o9eq0w6rWCE",
+							"method": "POST",
+							"headers": {},
+							"body": {
+								"Sendto": "sumitjumwal1996@gmail.com",
+								"FailedMessage": "This Pipeline ran ok : Assignement10_Q2",
+								"Status": "Failed",
+								"Subject": "Pipeline ok Assignment10_Q2"
+							}
+						}
 					}
 				],
 				"policy": {
