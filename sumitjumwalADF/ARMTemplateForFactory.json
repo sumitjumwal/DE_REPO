@@ -29,7 +29,7 @@
 		},
 		"RESTApi_properties_typeProperties_url": {
 			"type": "string",
-			"defaultValue": "https://restcountries.com/v3.1/all"
+			"defaultValue": "https://restcountries.com/v3.1/name"
 		},
 		"storage_trigger_properties_typeProperties_scope": {
 			"type": "string",
@@ -89,6 +89,98 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/dataflows/Assignment8_Q3_advance')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Assignment10_Q2')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ForEach_country",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@createArray('india','us','uk','china','russia')",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Copy data1",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "RestSource",
+											"httpRequestTimeout": "00:01:40",
+											"requestInterval": "00.00:00:00.010",
+											"requestMethod": "GET",
+											"paginationRules": {
+												"supportRFC5988": "true"
+											}
+										},
+										"sink": {
+											"type": "DelimitedTextSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "DelimitedTextWriteSettings",
+												"quoteAllText": true,
+												"fileExtension": ".txt"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "REST_DS",
+											"type": "DatasetReference",
+											"parameters": {
+												"CountryName": {
+													"value": "@item()",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "CSV_FILE_DS",
+											"type": "DatasetReference",
+											"parameters": {
+												"Filename": {
+													"value": "@concat(item(),'.CSV')",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/REST_DS')]",
+				"[concat(variables('factoryId'), '/datasets/CSV_FILE_DS')]"
 			]
 		},
 		{
@@ -1321,7 +1413,8 @@
 					"elapsedTimeMetric": {},
 					"cancelAfter": {}
 				},
-				"annotations": []
+				"annotations": [],
+				"lastPublishTime": "2023-08-08T02:06:07Z"
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/dataflows/FindDuplicate')]"
@@ -2549,7 +2642,8 @@
 					"elapsedTimeMetric": {},
 					"cancelAfter": {}
 				},
-				"annotations": []
+				"annotations": [],
+				"lastPublishTime": "2023-08-07T03:35:07Z"
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/dataflows/SCD3')]"
@@ -2697,6 +2791,75 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/SQL_Generic_DS')]",
 				"[concat(variables('factoryId'), '/datasets/CSV_DS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/api_to_SQL')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET",
+								"paginationRules": {
+									"supportRFC5988": "true"
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "REST_DS",
+								"type": "DatasetReference",
+								"parameters": {
+									"CountryName": "us"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "SQL_Generic_DS",
+								"type": "DatasetReference",
+								"parameters": {
+									"TableName": "US",
+									"SchemaName": "SalesLT"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/REST_DS')]",
+				"[concat(variables('factoryId'), '/datasets/SQL_Generic_DS')]"
 			]
 		},
 		{
@@ -3166,7 +3329,8 @@
 					"elapsedTimeMetric": {},
 					"cancelAfter": {}
 				},
-				"annotations": []
+				"annotations": [],
+				"lastPublishTime": "2023-08-14T17:19:39Z"
 			},
 			"dependsOn": []
 		},
@@ -3386,9 +3550,19 @@
 					"referenceName": "RESTApi",
 					"type": "LinkedServiceReference"
 				},
+				"parameters": {
+					"CountryName": {
+						"type": "string"
+					}
+				},
 				"annotations": [],
 				"type": "RestResource",
-				"typeProperties": {},
+				"typeProperties": {
+					"relativeUrl": {
+						"value": "@dataset().CountryName",
+						"type": "Expression"
+					}
+				},
 				"schema": []
 			},
 			"dependsOn": [
@@ -3497,12 +3671,66 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/storage_trigger')]",
+			"name": "[concat(parameters('factoryName'), '/Assignement10_Q3')]",
 			"type": "Microsoft.DataFactory/factories/triggers",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"annotations": [],
 				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "Assignment10_Q2",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Hour",
+						"interval": 12,
+						"startTime": "2023-08-15T20:30:00",
+						"endTime": "2023-08-18T13:05:00",
+						"timeZone": "India Standard Time"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/Assignment10_Q2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Tumbling')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"type": "TumblingWindowTrigger",
+				"typeProperties": {
+					"frequency": "Minute",
+					"interval": 5,
+					"startTime": "2023-08-15T04:35:00Z",
+					"endTime": "2023-08-16T04:35:00Z",
+					"delay": "00:00:00",
+					"maxConcurrency": 50,
+					"retryPolicy": {
+						"intervalInSeconds": 30
+					},
+					"dependsOn": []
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/storage_trigger')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
 				"pipelines": [
 					{
 						"pipelineReference": {

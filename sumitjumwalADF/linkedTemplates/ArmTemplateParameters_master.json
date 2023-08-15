@@ -21,7 +21,7 @@
 			"value": "https://athiranambiar1991.dfs.core.windows.net/"
 		},
 		"RESTApi_properties_typeProperties_url": {
-			"value": "https://restcountries.com/v3.1/all"
+			"value": "https://restcountries.com/v3.1/name"
 		},
 		"storage_trigger_properties_typeProperties_scope": {
 			"value": "/subscriptions/b48c28de-b7cd-4176-a809-6e3f48e95165/resourceGroups/DataEngineering/providers/Microsoft.Storage/storageAccounts/athiranambiar1991"

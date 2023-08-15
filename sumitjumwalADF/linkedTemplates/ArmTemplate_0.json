@@ -29,7 +29,7 @@
 		},
 		"RESTApi_properties_typeProperties_url": {
 			"type": "string",
-			"defaultValue": "https://restcountries.com/v3.1/all"
+			"defaultValue": "https://restcountries.com/v3.1/name"
 		},
 		"storage_trigger_properties_typeProperties_scope": {
 			"type": "string",
@@ -60,7 +60,8 @@
 					"elapsedTimeMetric": {},
 					"cancelAfter": {}
 				},
-				"annotations": []
+				"annotations": [],
+				"lastPublishTime": "2023-08-14T17:19:39Z"
 			},
 			"dependsOn": []
 		},
@@ -122,6 +123,29 @@
 				"type": "AzureSqlDatabase",
 				"typeProperties": {
 					"connectionString": "[parameters('SQL_Sample_database_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Tumbling')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"type": "TumblingWindowTrigger",
+				"typeProperties": {
+					"frequency": "Minute",
+					"interval": 5,
+					"startTime": "2023-08-15T04:35:00Z",
+					"endTime": "2023-08-16T04:35:00Z",
+					"delay": "00:00:00",
+					"maxConcurrency": 50,
+					"retryPolicy": {
+						"intervalInSeconds": 30
+					},
+					"dependsOn": []
 				}
 			},
 			"dependsOn": []
@@ -342,9 +366,19 @@
 					"referenceName": "RESTApi",
 					"type": "LinkedServiceReference"
 				},
+				"parameters": {
+					"CountryName": {
+						"type": "string"
+					}
+				},
 				"annotations": [],
 				"type": "RestResource",
-				"typeProperties": {},
+				"typeProperties": {
+					"relativeUrl": {
+						"value": "@dataset().CountryName",
+						"type": "Expression"
+					}
+				},
 				"schema": []
 			},
 			"dependsOn": [
@@ -396,7 +430,7 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"annotations": [],
-				"runtimeState": "Started",
+				"runtimeState": "Stopped",
 				"pipelines": [
 					{
 						"pipelineReference": {
@@ -998,80 +1032,6 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/SQL_Sample_database')]",
 				"[concat(variables('factoryId'), '/linkedServices/ADLS_CSV_LS')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Assignment8_Q3_advance')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"linkedService": {
-								"referenceName": "SQL_Sample_database",
-								"type": "LinkedServiceReference"
-							},
-							"name": "DatabaseFromSQL"
-						}
-					],
-					"sinks": [
-						{
-							"linkedService": {
-								"referenceName": "ADLS_JSON_LS",
-								"type": "LinkedServiceReference"
-							},
-							"name": "JSON",
-							"rejectedDataLinkedService": {
-								"referenceName": "ADLS_JSON_LS",
-								"type": "LinkedServiceReference"
-							}
-						}
-					],
-					"transformations": [
-						{
-							"name": "AssignRow"
-						},
-						{
-							"name": "DeletDuplicate"
-						}
-					],
-					"scriptLines": [
-						"source(output(",
-						"          CID as integer,",
-						"          Name as string,",
-						"          mailid as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     format: 'table',",
-						"     store: 'sqlserver',",
-						"     schemaName: 'SalesLT',",
-						"     tableName: 'dummy',",
-						"     isolationLevel: 'READ_UNCOMMITTED') ~> DatabaseFromSQL",
-						"DatabaseFromSQL window(over(Name),",
-						"     asc(Name, true),",
-						"     Rn = rowNumber()) ~> AssignRow",
-						"AssignRow alterRow(deleteIf(greater(Rn,1))) ~> DeletDuplicate",
-						"DeletDuplicate sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     format: 'json',",
-						"     fileSystem: 'landing',",
-						"     folderPath: 'Customer',",
-						"     partitionFileNames:['Duplicate_deleted'],",
-						"     umask: 0022,",
-						"     preCommands: [],",
-						"     postCommands: [],",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     partitionBy('hash', 1)) ~> JSON"
-					]
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/SQL_Sample_database')]",
-				"[concat(variables('factoryId'), '/linkedServices/ADLS_JSON_LS')]"
 			]
 		}
 	]

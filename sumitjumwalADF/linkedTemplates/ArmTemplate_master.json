@@ -29,7 +29,7 @@
 		},
 		"RESTApi_properties_typeProperties_url": {
 			"type": "string",
-			"defaultValue": "https://restcountries.com/v3.1/all"
+			"defaultValue": "https://restcountries.com/v3.1/name"
 		},
 		"storage_trigger_properties_typeProperties_scope": {
 			"type": "string",
