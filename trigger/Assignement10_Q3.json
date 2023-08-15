@@ -1,0 +1,25 @@
+{
+	"name": "Assignement10_Q3",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Assignment10_Q2",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Hour",
+				"interval": 12,
+				"startTime": "2023-08-15T20:30:00",
+				"endTime": "2023-08-18T13:05:00",
+				"timeZone": "India Standard Time"
+			}
+		}
+	}
+}
