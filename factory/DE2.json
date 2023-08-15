@@ -1,0 +1,9 @@
+{
+	"name": "DE2",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "64f91c19-95a4-49e2-be9b-8775240750b1",
+		"tenantId": "69ffb37b-7c57-4b78-a89e-ec5d7b03a9b5"
+	}
+}
