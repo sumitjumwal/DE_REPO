@@ -131,7 +131,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: false,",
 				"     skipDuplicateMapOutputs: false) ~> select1",
-				"select1 alterRow(updateIf(DestinationLastname != SourceLastName)) ~> MakeRowsalter",
+				"select1 alterRow(updateIf(DestinationLastname!=SourceLastName)) ~> MakeRowsalter",
 				"JoinmatchingCID filter(isNull(DestinationCustomer@CustomerID)) ~> NotexistentRow",
 				"NotexistentRow select(mapColumn(",
 				"          CustomerID = SourceCustomer@CustomerID,",

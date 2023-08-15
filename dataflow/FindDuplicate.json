@@ -58,7 +58,7 @@
 				"Source window(over(LastName),",
 				"     asc(CustomerID, true),",
 				"     RowNumber = rowNumber()) ~> window1",
-				"window1 alterRow(deleteIf(RowNumber > 1)) ~> DeletAlter",
+				"window1 alterRow(deleteIf(RowNumber>1)) ~> DeletAlter",
 				"DeletAlter sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'table',",
