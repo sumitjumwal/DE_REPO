@@ -5,8 +5,19 @@
 			"referenceName": "RESTApi",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"CountryName": {
+				"type": "string"
+			}
+		},
 		"annotations": [],
 		"type": "RestResource",
+		"typeProperties": {
+			"relativeUrl": {
+				"value": "@dataset().CountryName",
+				"type": "Expression"
+			}
+		},
 		"schema": []
 	}
 }
