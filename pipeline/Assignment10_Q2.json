@@ -130,7 +130,7 @@
 					"method": "POST",
 					"body": {
 						"Sendto": "sumitjumwal1996@gmail.com",
-						"FailedMessage": "This Pipeline is failled : Assignement10_Q2",
+						"FailedMessage": "This Pipeline ran ok : Assignement10_Q2",
 						"Status": "Failed",
 						"Subject": "Pipeline ok Assignment10_Q2"
 					}
