@@ -9,7 +9,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@createArray('india','none','uk','china','russia')",
+						"value": "@createArray('india','us','uk','china','russia')",
 						"type": "Expression"
 					},
 					"activities": [
